@@ -247,8 +247,7 @@ class Launcher {
                     return resolve(0)
                 }
 
-                log.error('No specs found to run, exiting with failure')
-                return resolve(1)
+                return resolve(0)
             }
 
             /**

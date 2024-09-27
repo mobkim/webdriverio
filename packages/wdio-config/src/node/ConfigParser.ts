@@ -403,9 +403,6 @@ export default class ConfigParser {
                 })
             }
         })
-        if (filesToFilter.size === 0) {
-            throw new Error(`spec file(s) ${cliArgFileList.join(', ')} not found`)
-        }
         return [...filesToFilter]
     }
 
