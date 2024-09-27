@@ -74,7 +74,7 @@ class Launcher {
          */
         this._args.autoCompileOpts = config.autoCompileOpts
 
-        const capabilities = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
+        let capabilities = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
         this.isParallelMultiremote = Array.isArray(capabilities) &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
@@ -86,6 +86,7 @@ class Launcher {
         /**
          * For Parallel-Multiremote, only get the specs and excludes from the first object
          */
+        capabilities = this.isMultiremote ? Object.values(capabilities) : capabilities
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
                 .map((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
