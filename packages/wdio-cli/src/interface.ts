@@ -107,17 +107,19 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onStart() {
-        const shardNote = this.#hasShard()
-            ? ` (Shard ${this._config.shard!.current} of ${this._config.shard!.total})`
-            : ''
-        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} workers${shardNote} started at`), this._start.toISOString())
-        if (this._inDebugMode) {
-            this.log(chalk.bgYellow(chalk.black('DEBUG mode enabled!')))
+        if (this.totalWorkerCnt > 0) {
+            const shardNote = this.#hasShard()
+                ? ` (Shard ${this._config.shard!.current} of ${this._config.shard!.total})`
+                : ''
+            this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} workers${shardNote} started at`), this._start.toISOString())
+            if (this._inDebugMode) {
+                this.log(chalk.bgYellow(chalk.black('DEBUG mode enabled!')))
+            }
+            if (this._isWatchMode) {
+                this.log(chalk.bgYellow(chalk.black('WATCH mode enabled!')))
+            }
+            this.log('')
         }
-        if (this._isWatchMode) {
-            this.log(chalk.bgYellow(chalk.black('WATCH mode enabled!')))
-        }
-        this.log('')
     }
 
     onSpecRunning (rid: string) {
@@ -316,41 +318,43 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     printSummary() {
-        const totalJobs = this.totalWorkerCnt - this.result.retries
-        const elapsed = (new Date(Date.now() - this._start.getTime())).toUTCString().match(/(\d\d:\d\d:\d\d)/)![0]
-        const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
-        const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
-        const skipped = this._skippedSpecs > 0 ? chalk.gray(this._skippedSpecs, 'skipped') + ', ' : ''
-        const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
+        if (this.totalWorkerCnt > 0) {
+            const totalJobs = this.totalWorkerCnt - this.result.retries
+            const elapsed = (new Date(Date.now() - this._start.getTime())).toUTCString().match(/(\d\d:\d\d:\d\d)/)![0]
+            const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
+            const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
+            const skipped = this._skippedSpecs > 0 ? chalk.gray(this._skippedSpecs, 'skipped') + ', ' : ''
+            const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
 
-        const snapshotSummary = this.#snapshotManager.summary
-        const snapshotNotes: string[] = []
+            const snapshotSummary = this.#snapshotManager.summary
+            const snapshotNotes: string[] = []
 
-        if (snapshotSummary.added > 0) {
-            snapshotNotes.push(chalk.green(`${snapshotSummary.added} snapshot(s) added.`))
-        }
-        if (snapshotSummary.updated > 0) {
-            snapshotNotes.push(chalk.yellow(`${snapshotSummary.updated} snapshot(s) updated.`))
-        }
-        if (snapshotSummary.unmatched > 0) {
-            snapshotNotes.push(chalk.red(`${snapshotSummary.unmatched} snapshot(s) unmatched.`))
-        }
-        if (snapshotSummary.unchecked > 0) {
-            snapshotNotes.push(chalk.gray(`${snapshotSummary.unchecked} snapshot(s) unchecked.`))
-        }
+            if (snapshotSummary.added > 0) {
+                snapshotNotes.push(chalk.green(`${snapshotSummary.added} snapshot(s) added.`))
+            }
+            if (snapshotSummary.updated > 0) {
+                snapshotNotes.push(chalk.yellow(`${snapshotSummary.updated} snapshot(s) updated.`))
+            }
+            if (snapshotSummary.unmatched > 0) {
+                snapshotNotes.push(chalk.red(`${snapshotSummary.unmatched} snapshot(s) unmatched.`))
+            }
+            if (snapshotSummary.unchecked > 0) {
+                snapshotNotes.push(chalk.gray(`${snapshotSummary.unchecked} snapshot(s) unchecked.`))
+            }
 
-        if (snapshotNotes.length > 0) {
-            this.log('\nSnapshot Summary:')
-            snapshotNotes.forEach((note) => this.log(note))
-        }
+            if (snapshotNotes.length > 0) {
+                this.log('\nSnapshot Summary:')
+                snapshotNotes.forEach((note) => this.log(note))
+            }
 
-        return this.log(
-            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
-            this.#hasShard()
-                ? `\nShard:\t\t ${this._config.shard!.current} / ${this._config.shard!.total}`
-                : '',
-            '\n'
-        )
+            return this.log(
+                '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
+                this.#hasShard()
+                    ? `\nShard:\t\t ${this._config.shard!.current} / ${this._config.shard!.total}`
+                    : '',
+                '\n'
+            )
+        }
     }
 
     finalise() {
